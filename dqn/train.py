@@ -4,7 +4,7 @@ from dqn.agent import DQNAgent
 
 
 # In your training script, add this helper
-def calculate_shaped_reward(old_state, new_state, player_id, capture_made=False):
+def calculate_reward(old_state, new_state, player_id, capture_made=False):
     """
     Calculate sophisticated reward using minimax evaluation
     """
@@ -65,7 +65,7 @@ def train_dqn(num_episodes=1000, target_update_freq=10, save_freq=100):
         step_count = 0
 
         for agent_name in env.agent_iter():
-            observation, reward, termination, truncation, info = env.last()
+            observation, env_reward, termination, truncation, info = env.last()
 
             # Get current player and state
             current_player = 1 if agent_name == "player_1" else 2
@@ -78,22 +78,35 @@ def train_dqn(num_episodes=1000, target_update_freq=10, save_freq=100):
             if termination or truncation:
                 # Store final transition with terminal reward
                 if current_player == 1:
-                    episode_reward_1 += reward
-                    agent1.store_transition(state, [0, 0, 0], reward, state, True)
+                    episode_reward_1 += env_reward
+                    agent1.store_transition(state, [0, 0, 0], env_reward, state, True)
                 else:
-                    episode_reward_2 += reward
-                    agent2.store_transition(state, [0, 0, 0], reward, state, True)
+                    episode_reward_2 += env_reward
+                    agent2.store_transition(state, [0, 0, 0], env_reward, state, True)
                 break
+
 
             # Get legal moves and choose action
             legal_moves = info['legal_moves']
             action = agent.choose_move(state, legal_moves)
 
+            # Store state BEFORE the move
+            state_before_move = mill.transition_model(env)
+
             # Take step
             env.step(action)
 
+            # Get state AFTER the move
+            state_after_move = mill.transition_model(env)
+
             # Get next state and reward
-            next_observation, next_reward, _, _, _ = env.last()
+            next_observation, _, _, _, _ = env.last()
+
+            next_reward = calculate_reward(
+                state_before_move,
+                state_after_move,
+                current_player
+            )
 
             # Store transition
             if current_player == 1:
@@ -148,4 +161,4 @@ if __name__ == "__main__":
 
     os.makedirs('dqn_models', exist_ok=True)
 
-    train_dqn(num_episodes=1000, target_update_freq=10, save_freq=100)
+    train_dqn(num_episodes=100, target_update_freq=10, save_freq=100)

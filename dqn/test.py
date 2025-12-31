@@ -2,10 +2,10 @@ from famnit_gym.envs import mill
 from dqn.agent import DQNAgent
 
 
-def test_dqn_vs_random(model_path, num_games=10):
+def test_dqn_vs_random(model_path, num_games=1000):
     """Test trained DQN agent against random opponent"""
 
-    env = mill.env(render_mode="human")
+    env = mill.env(render_mode="none")
 
     # Load trained agent
     dqn_agent = DQNAgent(player_id=1)
