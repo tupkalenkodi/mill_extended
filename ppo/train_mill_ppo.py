@@ -2,12 +2,13 @@ import ray
 from ray.rllib.algorithms.ppo import PPOConfig
 from ray.tune.registry import register_env
 
-from mill_env import env as mill_env_creator
-from mill_rllib_env import MillRLlibEnv
+from famnit_gym.envs import mill
+from mill_env_rllib import MillRLlibEnv
 
 ENV_NAME = "mill-rllib"
 
 def env_creator(config=None):
+    mill_env_creator = mill.env()
     return MillRLlibEnv(mill_env_creator)
 
 if __name__ == "__main__":
